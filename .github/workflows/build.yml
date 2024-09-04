@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
     types: [ opened, ready_for_review, reopened, synchronize ]
+  release:
+    types: [ published ]
   workflow_dispatch:
 
 env:
@@ -47,12 +49,14 @@ jobs:
 
       - name: Publish
         run: dotnet publish ./StreamViewer/StreamViewer.csproj --configuration Release --output ./publish
+        if: github.event_name == 'release'
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: StreamViewer-${{ runner.os }}
           path: ./publish
+        if: github.event_name == 'release'
 
   publish:
     name: Publish
