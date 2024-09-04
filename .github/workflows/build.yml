@@ -1,0 +1,87 @@
+name: StreamViewer
+
+on:
+  push:
+  pull_request:
+    types: [ opened, ready_for_review, reopened, synchronize ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: 6.0.x
+  # Disable the .NET logo in the console output.
+  DOTNET_NOLOGO: true
+  # Disable the .NET first time experience to skip caching NuGet packages and speed up the build.
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  # Disable sending .NET CLI telemetry to Microsoft.
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  # Set the build number in MinVer.
+  MINVERBUILDMETADATA: build.${{ github.run_number }}
+
+jobs:
+  build:
+    name: Build-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macOS-latest ]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: List installed .NET SDKs
+        run: dotnet --list-sdks
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build StreamViewer
+        run: dotnet build --configuration Release
+
+      - name: Publish
+        run: dotnet publish --configuration Release --output ./publish
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: StreamViewer-${{ runner.os }}
+          path: ./publish
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+        with:
+          nuget-version: latest
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Print release version
+        run: echo ${{ github.ref_name }}
+
+      - name: Create archive
+        run: |
+          7z a StreamViewer-macOS-v${{ github.ref_name }}.zip ./StreamViewer-macOS/*
+          7z a StreamViewer-Linux-v${{ github.ref_name }}.zip ./StreamViewer-Linux/*
+          7z a StreamViewer-Windows-v${{ github.ref_name }}.zip ./StreamViewer-Windows/*
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          generate_release_notes: true
+          files: |
+            StreamViewer*.zip
