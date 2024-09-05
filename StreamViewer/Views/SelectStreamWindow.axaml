@@ -2,8 +2,59 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:vm="using:StreamViewer.ViewModels"
+        mc:Ignorable="d"
+        d:DesignWidth="800" d:DesignHeight="450"
         x:Class="StreamViewer.Views.SelectStreamWindow"
-        Title="SelectStreamWindow">
-  Welcome to Avalonia!
+        x:DataType="vm:SelectStreamWindowViewModel"
+        Title="Select LSL Stream"
+        SizeToContent="WidthAndHeight">
+  <Grid Margin="15"
+        RowDefinitions="Auto,*,Auto,*,15,Auto">
+    <Label Grid.Row="0"
+           Content="{Binding RegularStreams.Count, StringFormat={}{0} regular streams:}" />
+
+    <DataGrid Grid.Row="1"
+              AutoGenerateColumns="False"
+              SelectionMode="Single"
+              ItemsSource="{Binding RegularStreams}"
+              >
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Name"
+                            Binding="{Binding Name}" />
+        <DataGridTextColumn Header="Type"
+                            Binding="{Binding Type}" />
+        <DataGridTextColumn Header="Source ID"
+                            Binding="{Binding SourceId}" />
+        <DataGridTextColumn Header="Channel Count"
+                            Binding="{Binding ChannelCount}" />
+        <DataGridTextColumn Header="Sampling Rate"
+                            Binding="{Binding NominalSrate}" />
+        <DataGridTextColumn Header="Channel Format"
+                            Binding="{Binding ChannelFormat}" />
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <Label Grid.Row="2"
+           Content="{Binding IrregularStreams.Count, StringFormat={}{0} irregular streams:}" />
+    
+    <DataGrid Grid.Row="3"
+              AutoGenerateColumns="False"
+              ItemsSource="{Binding IrregularStreams}">
+      <DataGrid.Columns>
+        <DataGridTextColumn Header="Name"
+                            Binding="{Binding Name}" />
+        <DataGridTextColumn Header="Type"
+                            Binding="{Binding Type}" />
+        <DataGridTextColumn Header="Source ID"
+                            Binding="{Binding SourceId}" />
+        <DataGridTextColumn Header="Channel Count"
+                            Binding="{Binding ChannelCount}" />
+        <DataGridTextColumn Header="Channel Format"
+                            Binding="{Binding ChannelFormat}" />
+      </DataGrid.Columns>
+    </DataGrid>
+    
+    
+  </Grid>
 </Window>
